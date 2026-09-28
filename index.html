@@ -189,6 +189,12 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* iOS & Mobile Smooth Touch Scrolling */
+        .touch-scroll {
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 lg:h-screen lg:overflow-hidden">
@@ -245,6 +251,7 @@
                         <li class="flex items-start"><span class="text-cyan-400 font-bold mr-1.5">•</span> <span>คลิกที่ <strong>กรอบไฮไลท์สีฟ้า</strong> บนแผงวงจรเพื่อศึกษาข้อมูลอุปกรณ์</span></li>
                         <li class="flex items-start"><span class="text-cyan-400 font-bold mr-1.5">•</span> <span>เปลี่ยนสวิตช์ <strong>INPUT SELECT</strong> ด้านล่างเพื่อสังเกตการตัด-ต่อกระแส</span></li>
                         <li class="flex items-start"><span class="text-cyan-400 font-bold mr-1.5">•</span> <span>สังเกต <strong>กระแส Base (IB)</strong> และ <strong>กระแส Collector (IC)</strong> เมื่อ LED สว่าง</span></li>
+                        <li class="flex items-start"><span class="text-cyan-400 font-bold mr-1.5">•</span> <span>คลิกปุ่ม <strong>ผังวงจร (Schematic)</strong> ด้านบนเพื่อดูแผนผังวงจรสำหรับต่อสายตาม</span></li>
                     </ul>
                 </div>
 
@@ -527,35 +534,51 @@
         </aside>
 
         <!-- ================= RIGHT/TOP PANEL: CIRCUIT WORKBENCH ================= -->
-        <section class="order-1 lg:order-2 flex-1 flex flex-col p-2 sm:p-4 md:p-6 overflow-y-auto lg:h-full items-center justify-start lg:justify-center z-10 bg-slate-950">
+        <section class="order-1 lg:order-2 flex-1 flex flex-col p-2 sm:p-4 md:p-6 overflow-y-auto lg:h-full items-center justify-start lg:justify-center z-10 bg-slate-950 touch-scroll">
             
-            <div class="hardware-panel w-full max-w-5xl shrink-0 p-3 sm:p-4 md:p-8 relative">
+            <div class="hardware-panel w-full max-w-5xl shrink-0 p-3 sm:p-4 md:p-6 relative max-h-none lg:max-h-[96vh] flex flex-col">
                 <!-- Metallic Corners -->
                 <div class="metal-corner corner-tl"></div>
                 <div class="metal-corner corner-tr"></div>
                 <div class="metal-corner corner-bl"></div>
                 <div class="metal-corner corner-br"></div>
 
-                <!-- Panel Header -->
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-4 border-b border-slate-300 pb-3 gap-2">
+                <!-- Panel Header with View Switcher -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 border-b border-slate-300 pb-2.5 gap-2 shrink-0">
                     <div class="text-left">
-                        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-600/60 shadow-sm text-[10px] sm:text-xs text-slate-200 font-mono mb-1.5">
+                        <div class="inline-flex items-center space-x-2 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-600/60 shadow-sm text-[9px] sm:text-[11px] text-slate-200 font-mono mb-1">
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                             <span>VOCATIONAL ELECTRONICS TRAINING PANEL</span>
                         </div>
-                        <h2 class="text-lg md:text-2xl font-bold text-slate-800 tracking-wide">ชุดสาธิตวงจรทรานซิสเตอร์สวิตซ์</h2>
+                        <h2 class="text-base sm:text-xl md:text-2xl font-bold text-slate-800 tracking-wide">ชุดสาธิตวงจรทรานซิสเตอร์สวิตซ์</h2>
                     </div>
                     
-                    <!-- Integrated Status Badge -->
-                    <div id="circuitLiveBadge" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 border border-red-500/30 text-xs md:text-sm font-semibold shrink-0 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                        <span id="badgeStateText">Cut-off (OFF)</span>
+                    <div class="flex items-center gap-2 flex-wrap justify-between sm:justify-end w-full sm:w-auto">
+                        <!-- ปุ่มกดสลับมุมมอง Simulator / Schematic -->
+                        <div class="inline-flex p-1 bg-slate-800/90 rounded-xl border border-slate-600/60 shadow-inner">
+                            <button id="btnViewSimulator" onclick="switchCircuitView('simulator')" 
+                                class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition bg-cyan-600 text-white shadow">
+                                <i class="fas fa-microchip"></i>
+                                <span>ชุดทดลองเสมือนจริง</span>
+                            </button>
+                            <button id="btnViewSchematic" onclick="switchCircuitView('schematic')" 
+                                class="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>ผังวงจร (Schematic)</span>
+                            </button>
+                        </div>
+
+                        <!-- Integrated Status Badge -->
+                        <div id="circuitLiveBadge" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 border border-red-500/30 text-xs md:text-sm font-semibold shrink-0 shadow-sm">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                            <span id="badgeStateText">Cut-off (OFF)</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- SVG Container -->
-                <div class="w-full relative">
-                    <svg id="circuitSvg" viewBox="0 0 950 550" class="w-full h-auto block select-none" preserveAspectRatio="xMidYMid meet">
+                <!-- SVG Container 1: Simulator Workbench -->
+                <div class="w-full relative flex-1 min-h-0 flex flex-col justify-center">
+                    <svg id="circuitSvg" viewBox="0 0 950 550" class="w-full h-auto max-h-[62vh] block select-none mx-auto" preserveAspectRatio="xMidYMid meet">
                         
                         <defs>
                             <g id="resistor"><polyline points="0,0 10,-10 20,10 30,-10 40,10 50,-10 60,0" fill="none" stroke="#0f172a" stroke-width="3" stroke-linejoin="round"/></g>
@@ -808,6 +831,345 @@
                         </g>
 
                     </svg>
+
+                    <!-- Container 2: Schematic Diagram for Students to Follow (Optimized for Mobile/Tablet/Desktop) -->
+                    <div id="schematicContainer" class="w-full hidden bg-slate-900/95 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 border border-slate-700 shadow-2xl backdrop-blur flex-1 overflow-y-auto max-h-[72vh] custom-scrollbar touch-scroll">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-750 pb-2 mb-3 gap-2 shrink-0">
+                            <div class="flex items-center space-x-2 text-cyan-400">
+                                <div class="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                                    <i class="fas fa-sitemap text-xs sm:text-sm"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="font-bold text-xs sm:text-sm md:text-base text-white truncate">ผังวงจรเชิงทฤษฎี & คู่มือต่อวงจรบนโปรโต้บอร์ด</h3>
+                                    <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">ผังวงจรมาตรฐานสากล พร้อมแผนผังขาอุปกรณ์เพื่อการต่อสายจริง</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono font-semibold">
+                                    <i class="fas fa-check-circle mr-1"></i> PROTOBOARD READY
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Main Circuit SVG (Clean Aspect Ratio: 680x420, Never Overflowing) -->
+                        <div class="w-full bg-slate-950 rounded-xl p-2 border border-slate-800 shadow-inner flex justify-center items-center overflow-hidden">
+                            <svg viewBox="0 0 680 420" class="w-full h-auto max-h-[46vh] sm:max-h-[50vh] select-none block" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <!-- Schematic Resistor (Clean IEC Standard) -->
+                                    <g id="sch-res-h">
+                                        <line x1="0" y1="0" x2="10" y2="0" stroke="#38bdf8" stroke-width="2.5"/>
+                                        <rect x="10" y="-9" width="45" height="18" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5" rx="3"/>
+                                        <line x1="55" y1="0" x2="65" y2="0" stroke="#38bdf8" stroke-width="2.5"/>
+                                    </g>
+                                    <g id="sch-res-v">
+                                        <line x1="0" y1="0" x2="0" y2="8" stroke="#38bdf8" stroke-width="2.5"/>
+                                        <rect x="-9" y="8" width="18" height="42" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5" rx="3"/>
+                                        <line x1="0" y1="50" x2="0" y2="58" stroke="#38bdf8" stroke-width="2.5"/>
+                                    </g>
+
+                                    <!-- Ground Symbol -->
+                                    <g id="sch-gnd">
+                                        <line x1="0" y1="0" x2="0" y2="12" stroke="#94a3b8" stroke-width="2.5"/>
+                                        <line x1="-14" y1="12" x2="14" y2="12" stroke="#94a3b8" stroke-width="2.5"/>
+                                        <line x1="-9" y1="18" x2="9" y2="18" stroke="#94a3b8" stroke-width="2.5"/>
+                                        <line x1="-4" y1="24" x2="4" y2="24" stroke="#94a3b8" stroke-width="2.5"/>
+                                    </g>
+
+                                    <!-- Junction Point Nodes -->
+                                    <g id="sch-node"><circle cx="0" cy="0" r="4" fill="#38bdf8"/></g>
+                                    <g id="sch-node-red"><circle cx="0" cy="0" r="4" fill="#ef4444"/></g>
+                                    <g id="sch-node-gnd"><circle cx="0" cy="0" r="4" fill="#94a3b8"/></g>
+                                </defs>
+
+                                <!-- +5V Power Rail (Top) -->
+                                <line x1="40" y1="40" x2="640" y2="40" stroke="#ef4444" stroke-width="3"/>
+                                <use href="#sch-node-red" x="40" y="40"/>
+                                <text x="40" y="24" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="bold" fill="#ef4444">+5V DC (VCC - รางไฟบวก)</text>
+
+                                <!-- GND Rail (Bottom) -->
+                                <line x1="40" y1="380" x2="640" y2="380" stroke="#64748b" stroke-width="3"/>
+                                <use href="#sch-gnd" x="40" y="380"/>
+                                <text x="40" y="415" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="bold" fill="#94a3b8">GND (0V - กราวด์)</text>
+
+                                <!-- ================= 1. INPUT SELECT SWITCH ================= -->
+                                <rect x="35" y="125" width="130" height="210" fill="#0f172a" stroke="#3b82f6" stroke-dasharray="4,4" stroke-width="1.6" rx="8"/>
+                                <text x="100" y="148" text-anchor="middle" font-size="11" font-weight="bold" fill="#60a5fa">INPUT SELECT</text>
+
+                                <!-- Terminal 1: ON (+5V) -->
+                                <line x1="75" y1="40" x2="75" y2="180" stroke="#ef4444" stroke-width="2"/>
+                                <use href="#sch-node-red" x="75" y="40"/>
+                                <circle cx="75" cy="180" r="4" fill="#10b981"/>
+                                <text x="85" y="184" font-size="10" font-weight="bold" fill="#34d399">1: ON (+5V)</text>
+
+                                <!-- Terminal 2: OFF (0V) -->
+                                <line x1="75" y1="380" x2="75" y2="235" stroke="#64748b" stroke-width="2"/>
+                                <use href="#sch-node-gnd" x="75" y="380"/>
+                                <circle cx="75" cy="235" r="4" fill="#ef4444"/>
+                                <text x="85" y="239" font-size="10" font-weight="bold" fill="#f87171">2: OFF (0V)</text>
+
+                                <!-- Terminal 3: PULSE -->
+                                <line x1="75" y1="290" x2="105" y2="290" stroke="#a855f7" stroke-width="2"/>
+                                <circle cx="75" cy="290" r="4" fill="#a855f7"/>
+                                <text x="85" y="280" font-size="9.5" font-weight="bold" fill="#c084fc">3: PULSE</text>
+                                <rect x="105" y="278" width="34" height="24" fill="#1e1b4b" stroke="#a855f7" stroke-width="1" rx="4"/>
+                                <path d="M 110 293 L 115 293 L 115 285 L 123 285 L 123 293 L 131 293" fill="none" stroke="#c084fc" stroke-width="1.5"/>
+
+                                <!-- Switch Common Arm SW1 (Interactive & Animated) -->
+                                <circle cx="145" cy="235" r="4.5" fill="#38bdf8"/>
+                                <line id="sch-switch-arm" x1="145" y1="235" x2="82" y2="235" stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round" class="switch-toggle" style="filter: drop-shadow(0 0 4px #0284c7);"/>
+                                <circle cx="145" cy="235" r="2" fill="#ffffff"/>
+                                <text x="145" y="222" font-size="10" font-weight="bold" fill="#38bdf8" text-anchor="middle">SW1</text>
+
+                                <!-- Output of SW1 to Base Path -->
+                                <line x1="145" y1="235" x2="190" y2="235" stroke="#94a3b8" stroke-width="2.2"/>
+
+                                <!-- ================= 2. BASE CURRENT MEASUREMENT (IB) ================= -->
+                                <use href="#sch-node" x="190" y="235"/>
+                                <line x1="190" y1="235" x2="250" y2="235" stroke="#06b6d4" stroke-width="1.8" stroke-dasharray="4,3"/>
+                                <circle cx="220" cy="235" r="12" fill="#0f172a" stroke="#06b6d4" stroke-width="1.8"/>
+                                <text x="220" y="239" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="bold" fill="#22d3ee">mA</text>
+                                <text x="220" y="213" text-anchor="middle" font-size="10" font-weight="bold" fill="#22d3ee">จุดวัด IB</text>
+                                <text x="220" y="262" text-anchor="middle" font-size="8" fill="#94a3b8">(ต่ออนุกรม)</text>
+                                <use href="#sch-node" x="250" y="235"/>
+
+                                <!-- Base Resistor RB (4.7k) -->
+                                <line x1="250" y1="235" x2="270" y2="235" stroke="#94a3b8" stroke-width="2.2"/>
+                                <use href="#sch-res-h" x="270" y="235"/>
+                                <text x="302" y="217" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="bold" fill="#e2e8f0">RB</text>
+                                <text x="302" y="260" text-anchor="middle" font-size="10" font-weight="bold" fill="#38bdf8">4.7 kΩ</text>
+
+                                <!-- Wire from RB to Q1 Base -->
+                                <line x1="335" y1="235" x2="400" y2="235" stroke="#94a3b8" stroke-width="2.2"/>
+
+                                <!-- Node for VBE Voltmeter Tap -->
+                                <use href="#sch-node" x="365" y="235"/>
+                                <line x1="365" y1="235" x2="365" y2="305" stroke="#10b981" stroke-width="1.6" stroke-dasharray="3,3"/>
+                                <circle cx="365" cy="318" r="12" fill="#064e3b" stroke="#10b981" stroke-width="1.8"/>
+                                <text x="365" y="322" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="bold" fill="#34d399">V</text>
+                                <line x1="365" y1="330" x2="365" y2="380" stroke="#10b981" stroke-width="1.6" stroke-dasharray="3,3"/>
+                                <use href="#sch-node-gnd" x="365" y="380"/>
+                                <text x="315" y="322" font-size="9.5" font-weight="bold" fill="#34d399">วัด VBE (ขนาน)</text>
+
+                                <!-- ================= 3. TRANSISTOR Q1 (2N2222 NPN) ================= -->
+                                <g id="sch-transistor-npn" transform="translate(400, 235)">
+                                    <circle cx="26" cy="18" r="26" fill="#030712" stroke="#e2e8f0" stroke-width="1.8"/>
+                                    <!-- Base Pin Lead & Bar -->
+                                    <line x1="0" y1="18" x2="16" y2="18" stroke="#e2e8f0" stroke-width="2.2"/>
+                                    <line x1="16" y1="0" x2="16" y2="36" stroke="#e2e8f0" stroke-width="3"/>
+                                    <!-- Collector Slant & Up Lead -->
+                                    <line x1="16" y1="9" x2="34" y2="-5" stroke="#e2e8f0" stroke-width="2.2"/>
+                                    <line x1="34" y1="-5" x2="34" y2="-18" stroke="#e2e8f0" stroke-width="2.2"/>
+                                    <!-- Emitter Slant with Outward Arrow (NPN) & Down Lead -->
+                                    <line x1="16" y1="27" x2="34" y2="41" stroke="#e2e8f0" stroke-width="2.2"/>
+                                    <polygon points="34,41 24,37 28,30" fill="#38bdf8"/>
+                                    <line x1="34" y1="41" x2="34" y2="54" stroke="#e2e8f0" stroke-width="2.2"/>
+                                    <!-- Pin Indicator Letters -->
+                                    <text x="4" y="13" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="bold" fill="#38bdf8">B</text>
+                                    <text x="41" y="-7" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="bold" fill="#ef4444">C</text>
+                                    <text x="41" y="49" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="bold" fill="#94a3b8">E</text>
+                                </g>
+                                <text x="468" y="248" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="bold" fill="#e2e8f0">Q1</text>
+                                <text x="468" y="263" font-size="10" fill="#94a3b8">2N2222</text>
+                                <text x="468" y="276" font-size="9" fill="#38bdf8">(NPN)</text>
+
+                                <!-- Emitter Lead to GND Rail -->
+                                <line x1="434" y1="289" x2="434" y2="380" stroke="#94a3b8" stroke-width="2.2"/>
+                                <use href="#sch-node-gnd" x="434" y="380"/>
+
+                                <!-- ================= 4. COLLECTOR LOOP (Top to Bottom Flow) ================= -->
+                                <line x1="434" y1="40" x2="434" y2="60" stroke="#ef4444" stroke-width="2.2"/>
+                                <use href="#sch-node-red" x="434" y="40"/>
+
+                                <!-- Ammeter IC Branch -->
+                                <use href="#sch-node" x="434" y="60"/>
+                                <line x1="434" y1="60" x2="434" y2="105" stroke="#ef4444" stroke-width="1.8" stroke-dasharray="4,3"/>
+                                <circle cx="434" cy="82" r="12" fill="#0f172a" stroke="#ef4444" stroke-width="1.8"/>
+                                <text x="434" y="86" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" font-weight="bold" fill="#f87171">mA</text>
+                                <text x="485" y="81" font-size="10" font-weight="bold" fill="#ef4444">จุดวัด IC</text>
+                                <text x="485" y="93" font-size="8" fill="#94a3b8">(ต่ออนุกรม)</text>
+                                <use href="#sch-node" x="434" y="105"/>
+
+                                <!-- Load Resistor R_LED (330 ohm) in vertical position -->
+                                <use href="#sch-res-v" x="434" y="105"/>
+                                <text x="465" y="132" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="bold" fill="#e2e8f0">RLED</text>
+                                <text x="465" y="146" font-size="10" font-weight="bold" fill="#38bdf8">330 Ω</text>
+
+                                <!-- Wire from RLED to LED Anode -->
+                                <line x1="434" y1="163" x2="434" y2="175" stroke="#94a3b8" stroke-width="2.2"/>
+
+                                <!-- LED Component -->
+                                <g id="sch-led" transform="translate(434, 175)">
+                                    <!-- Anode Triangle -->
+                                    <polygon id="sch-led-body" points="-10,0 10,0 0,14" fill="#7f1d1d" stroke="#ef4444" stroke-width="1.8" class="transition-all duration-300"/>
+                                    <!-- Cathode Bar -->
+                                    <line x1="-10" y1="14" x2="10" y2="14" stroke="#ef4444" stroke-width="2.2"/>
+                                    <!-- Light Emission Rays -->
+                                    <g id="sch-led-rays" class="hidden">
+                                        <line x1="12" y1="5" x2="21" y2="-2" stroke="#f87171" stroke-width="1.6"/>
+                                        <polygon points="21,-2 16,-2 19,2" fill="#f87171"/>
+                                        <line x1="14" y1="12" x2="23" y2="5" stroke="#f87171" stroke-width="1.6"/>
+                                        <polygon points="23,5 18,5 21,9" fill="#f87171"/>
+                                    </g>
+                                    <!-- Lead -->
+                                    <line x1="0" y1="14" x2="0" y2="24" stroke="#94a3b8" stroke-width="2.2"/>
+                                </g>
+                                <text x="465" y="185" font-size="10" font-weight="bold" fill="#f87171">LED (LOAD)</text>
+                                <text x="465" y="196" font-size="8.5" fill="#94a3b8">A (+) บน / K (-) ล่าง</text>
+
+                                <!-- Wire from LED Cathode directly to Q1 Collector -->
+                                <line x1="434" y1="199" x2="434" y2="217" stroke="#94a3b8" stroke-width="2.2"/>
+
+                                <!-- ================= 5. VCE VOLTMETER MEASUREMENT ================= -->
+                                <use href="#sch-node" x="434" y="210"/>
+                                <line x1="434" y1="210" x2="540" y2="210" stroke="#3b82f6" stroke-width="1.6" stroke-dasharray="3,3"/>
+                                <line x1="540" y1="210" x2="540" y2="295" stroke="#3b82f6" stroke-width="1.6" stroke-dasharray="3,3"/>
+                                <circle cx="540" cy="308" r="12" fill="#172554" stroke="#3b82f6" stroke-width="1.8"/>
+                                <text x="540" y="312" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="bold" fill="#60a5fa">V</text>
+                                <line x1="540" y1="320" x2="540" y2="380" stroke="#3b82f6" stroke-width="1.6" stroke-dasharray="3,3"/>
+                                <use href="#sch-node-gnd" x="540" y="380"/>
+                                <text x="540" y="348" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#60a5fa">วัด VCE (ขนาน)</text>
+
+                                <!-- ================= SCHEMATIC MEASUREMENT ACTIVE FOCUS MARKER ================= -->
+                                <g id="sch-measure-marker" class="hidden pointer-events-none">
+                                    <!-- Animated Radar Ripple Ring 1 -->
+                                    <circle id="sch-marker-ripple1" cx="0" cy="0" r="14" fill="none" stroke="#38bdf8" stroke-width="2.5" opacity="0.8">
+                                        <animate attributeName="r" values="14;38" dur="1.5s" repeatCount="indefinite" />
+                                        <animate attributeName="opacity" values="0.9;0" dur="1.5s" repeatCount="indefinite" />
+                                    </circle>
+                                    <!-- Animated Radar Ripple Ring 2 -->
+                                    <circle id="sch-marker-ripple2" cx="0" cy="0" r="14" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.6">
+                                        <animate attributeName="r" values="14;38" begin="-0.75s" dur="1.5s" repeatCount="indefinite" />
+                                        <animate attributeName="opacity" values="0.8;0" begin="-0.75s" dur="1.5s" repeatCount="indefinite" />
+                                    </circle>
+                                    <!-- Main Concentric Ring with Pulse Glow -->
+                                    <circle id="sch-marker-ring" cx="0" cy="0" r="17" fill="rgba(6, 182, 212, 0.22)" stroke="#22d3ee" stroke-width="3">
+                                        <animate attributeName="stroke-width" values="2.5;4;2.5" dur="1.2s" repeatCount="indefinite" />
+                                    </circle>
+                                    <!-- Center Reticle Point -->
+                                    <circle id="sch-marker-dot" cx="0" cy="0" r="3.5" fill="#ffffff" />
+                                    <!-- Floating Telemetry Readout Badge -->
+                                    <g id="sch-marker-tag" transform="translate(0, -28)">
+                                        <rect id="sch-marker-tag-bg" x="-68" y="-12" width="136" height="23" rx="11.5" fill="#020617" stroke="#38bdf8" stroke-width="1.8" style="filter: drop-shadow(0 3px 10px rgba(0,0,0,0.85));"/>
+                                        <text id="sch-marker-tag-text" x="0" y="3.5" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10.5" font-weight="bold" fill="#38bdf8">MEASURING...</text>
+                                    </g>
+                                </g>
+
+                                <!-- ================= SCHEMATIC PARTICLE FLOW GROUPS ================= -->
+                                <g id="schCurrentFlowGroupOn" class="hidden pointer-events-none">
+                                    <!-- Base Loop Current Particles (IB) -->
+                                    <circle class="electron" cx="0" cy="0">
+                                        <animateMotion dur="2.8s" repeatCount="indefinite" path="M 75 40 L 75 180 L 145 235 L 190 235 L 250 235 L 335 235 L 416 253 L 434 276 L 434 380 L 40 380 L 40 40 L 75 40"/>
+                                    </circle>
+                                    <circle class="electron" cx="0" cy="0">
+                                        <animateMotion dur="2.8s" begin="-0.9s" repeatCount="indefinite" path="M 75 40 L 75 180 L 145 235 L 190 235 L 250 235 L 335 235 L 416 253 L 434 276 L 434 380 L 40 380 L 40 40 L 75 40"/>
+                                    </circle>
+                                    <circle class="electron" cx="0" cy="0">
+                                        <animateMotion dur="2.8s" begin="-1.8s" repeatCount="indefinite" path="M 75 40 L 75 180 L 145 235 L 190 235 L 250 235 L 335 235 L 416 253 L 434 276 L 434 380 L 40 380 L 40 40 L 75 40"/>
+                                    </circle>
+
+                                    <!-- Collector Load Current Particles (IC) -->
+                                    <circle class="electron" cx="0" cy="0">
+                                        <animateMotion dur="2.6s" repeatCount="indefinite" path="M 434 40 L 434 380 L 40 380 L 40 40 L 434 40"/>
+                                    </circle>
+                                    <circle class="electron" cx="0" cy="0">
+                                        <animateMotion dur="2.6s" begin="-0.85s" repeatCount="indefinite" path="M 434 40 L 434 380 L 40 380 L 40 40 L 434 40"/>
+                                    </circle>
+                                    <circle class="electron" cx="0" cy="0">
+                                        <animateMotion dur="2.6s" begin="-1.7s" repeatCount="indefinite" path="M 434 40 L 434 380 L 40 380 L 40 40 L 434 40"/>
+                                    </circle>
+                                </g>
+
+                                <g id="schCurrentFlowGroupPulse" class="hidden pointer-events-none">
+                                    <!-- Base Loop Current Particles in Pulse Mode -->
+                                    <circle class="electron-pulse" cx="0" cy="0">
+                                        <animateMotion dur="2.5s" repeatCount="indefinite" path="M 75 290 L 145 235 L 190 235 L 250 235 L 335 235 L 416 253 L 434 276 L 434 380 L 75 380 L 75 290"/>
+                                    </circle>
+                                    <circle class="electron-pulse" cx="0" cy="0">
+                                        <animateMotion dur="2.5" begin="-0.8s" repeatCount="indefinite" path="M 75 290 L 145 235 L 190 235 L 250 235 L 335 235 L 416 253 L 434 276 L 434 380 L 75 380 L 75 290"/>
+                                    </circle>
+                                    <circle class="electron-pulse" cx="0" cy="0">
+                                        <animateMotion dur="2.5s" begin="-1.6s" repeatCount="indefinite" path="M 75 290 L 145 235 L 190 235 L 250 235 L 335 235 L 416 253 L 434 276 L 434 380 L 75 380 L 75 290"/>
+                                    </circle>
+
+                                    <!-- Collector Load Current Particles in Pulse Mode -->
+                                    <circle class="electron-pulse-c" cx="0" cy="0">
+                                        <animateMotion dur="2.6s" repeatCount="indefinite" path="M 434 40 L 434 380 L 40 380 L 40 40 L 434 40"/>
+                                    </circle>
+                                    <circle class="electron-pulse-c" cx="0" cy="0">
+                                        <animateMotion dur="2.6s" begin="-1.3s" repeatCount="indefinite" path="M 434 40 L 434 380 L 40 380 L 40 40 L 434 40"/>
+                                    </circle>
+                                </g>
+                            </svg>
+                        </div>
+
+                        <!-- Responsive Pinout & Breadboard Guide Cards (Clean HTML/Tailwind for iOS & Android) -->
+                        <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2.5 shrink-0 text-left">
+                            
+                            <!-- Card 1: 2N2222 Pinout -->
+                            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 shadow-md flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center space-x-1.5 text-cyan-400 font-bold text-xs mb-1.5 border-b border-slate-800 pb-1">
+                                        <i class="fas fa-microchip"></i>
+                                        <span>1. ขา 2N2222 (TO-92)</span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mb-2">หันหน้าเรียบเข้าหาตัว นับขา 1-2-3 จากซ้ายไปขวา:</p>
+                                    <ul class="space-y-1 font-mono text-[11px]">
+                                        <li class="flex items-center justify-between bg-slate-900/90 px-2 py-1 rounded border border-slate-800">
+                                            <span class="text-slate-400 font-bold">ขา 1 (ซ้าย)</span>
+                                            <span class="text-slate-200 font-bold">E (Emitter) → GND</span>
+                                        </li>
+                                        <li class="flex items-center justify-between bg-slate-900/90 px-2 py-1 rounded border border-slate-800">
+                                            <span class="text-cyan-400 font-bold">ขา 2 (กลาง)</span>
+                                            <span class="text-cyan-300 font-bold">B (Base) → RB 4.7k</span>
+                                        </li>
+                                        <li class="flex items-center justify-between bg-slate-900/90 px-2 py-1 rounded border border-slate-800">
+                                            <span class="text-red-400 font-bold">ขา 3 (ขวา)</span>
+                                            <span class="text-red-300 font-bold">C (Collector) → LED</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: LED Diode Pinout -->
+                            <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 shadow-md flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center space-x-1.5 text-amber-400 font-bold text-xs mb-1.5 border-b border-slate-800 pb-1">
+                                        <i class="fas fa-lightbulb"></i>
+                                        <span>2. ขาหลอด LED (5mm)</span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mb-2">สังเกตความยาวของขาและรอยบากที่ฐานหลอด:</p>
+                                    <ul class="space-y-1 text-[11px]">
+                                        <li class="bg-slate-900/90 p-1.5 rounded border border-slate-800 flex items-start gap-1.5">
+                                            <span class="text-red-400 font-bold font-mono shrink-0">ขายาว (+) :</span>
+                                            <span class="text-slate-300 text-[10.5px]">Anode ต่อเข้าตัวต้านทาน RLED 330Ω</span>
+                                        </li>
+                                        <li class="bg-slate-900/90 p-1.5 rounded border border-slate-800 flex items-start gap-1.5">
+                                            <span class="text-slate-400 font-bold font-mono shrink-0">ขาสั้น (-) :</span>
+                                            <span class="text-slate-300 text-[10.5px]">Cathode (ขอบบาก) ต่อเข้าขา C ของ Q1</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: 4-Step Breadboard Checklist -->
+                            <div class="bg-slate-950/80 border border-blue-500/30 rounded-xl p-3 shadow-md">
+                                <div class="flex items-center space-x-1.5 text-blue-400 font-bold text-xs mb-1.5 border-b border-slate-800 pb-1">
+                                    <i class="fas fa-list-check"></i>
+                                    <span>3. ลำดับการลงเบรดบอร์ด</span>
+                                </div>
+                                <ol class="text-[10px] sm:text-[10.5px] text-slate-300 space-y-1 list-decimal pl-4">
+                                    <li>เสียบ Q1: ขา 1 ลงราง GND, ขา 2-3 ลงรูแยก</li>
+                                    <li>ฝั่ง Base: เสียบ RB 4.7kΩ คร่อมจากสวิตช์ไปขา 2</li>
+                                    <li>ฝั่ง Load: เสียบ RLED 330Ω จาก +5V เข้า Anode</li>
+                                    <li>ขา Cathode ของ LED เสียบเข้าขา 3 (C) ของ Q1</li>
+                                </ol>
+                                <div class="mt-1.5 pt-1.5 border-t border-slate-800/80 text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                                    <i class="fas fa-check"></i> <span>วัดกระแส: ปลดสายจั๊มเปอร์แล้วแทรกมิเตอร์อนุกรม</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -981,6 +1343,7 @@
     <script>
         let currentMode = 'off'; 
         let currentTab = 'learn';
+        let currentCircuitView = 'simulator'; // 'simulator' หรือ 'schematic'
         let pulseInterval;
         let pulseState = false; 
         let pulseFrequency = 1; 
@@ -1012,8 +1375,8 @@
                     },
                     {
                         num: "3",
-                        title: "สังเกตการเคลื่อนที่ของกระแส & Telemetry",
-                        desc: "ดูเส้นทางอนุภาคกระแสไฟฟ้า ($I_B$ และ $I_C$) และตรวจสอบสถานะวงจรระหว่าง <strong>Cut-off</strong> และ <strong>Saturation</strong> แบบเรียลไทม์"
+                        title: "สลับดูผังวงจร (Schematic View)",
+                        desc: "กดปุ่ม <strong>'ผังวงจร (Schematic)'</strong> ด้านบนขวาของแผง เพื่อดูสัญลักษณ์วงจรมาตรฐานและใช้อ้างอิงในการต่อสายจริง"
                     }
                 ]
             },
@@ -1169,6 +1532,31 @@
             }
         };
 
+        // ฟังก์ชันสลับมุมมองระหว่าง ชุดทดลองจำลอง (Simulator) และ แผนผังวงจร (Schematic)
+        function switchCircuitView(viewType) {
+            currentCircuitView = viewType;
+            const circuitSvg = document.getElementById('circuitSvg');
+            const schematicContainer = document.getElementById('schematicContainer');
+            const btnSim = document.getElementById('btnViewSimulator');
+            const btnSch = document.getElementById('btnViewSchematic');
+
+            if (!circuitSvg || !schematicContainer) return;
+
+            if (viewType === 'schematic') {
+                circuitSvg.classList.add('hidden');
+                schematicContainer.classList.remove('hidden');
+
+                if (btnSch) btnSch.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition bg-cyan-600 text-white shadow";
+                if (btnSim) btnSim.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition";
+            } else {
+                circuitSvg.classList.remove('hidden');
+                schematicContainer.classList.add('hidden');
+
+                if (btnSim) btnSim.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition bg-cyan-600 text-white shadow";
+                if (btnSch) btnSch.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition";
+            }
+        }
+
         function switchTab(tabId) {
             currentTab = tabId;
             const tabLearn = document.getElementById('tab-learn');
@@ -1263,6 +1651,7 @@
 
             const toggleArm = document.getElementById('switch-arm');
             const toggleArmInner = document.getElementById('switch-arm-inner');
+            const schSwitchArm = document.getElementById('sch-switch-arm');
             const pulseControls = document.getElementById('pulseControls');
 
             if(pulseControls) pulseControls.classList.add('hidden');
@@ -1270,6 +1659,7 @@
             if (mode === 'off') {
                 if(toggleArm) { toggleArm.setAttribute('x2', '285'); toggleArm.setAttribute('y2', '300'); }
                 if(toggleArmInner) { toggleArmInner.setAttribute('x2', '285'); toggleArmInner.setAttribute('y2', '300'); }
+                if(schSwitchArm) { schSwitchArm.setAttribute('x2', '82'); schSwitchArm.setAttribute('y2', '235'); }
                 setCircuitState(false);
                 updateStatusPanel("CUT-OFF (OFF)", "ไม่มีกระแส Base → Transistor ไม่นำกระแส → LED ดับ", "text-red-400", "bg-red-950/40", "border-red-500/30");
                 updateLiveBadge("Cut-off (OFF)", "red");
@@ -1277,6 +1667,7 @@
             } else if (mode === 'on') {
                 if(toggleArm) { toggleArm.setAttribute('x2', '290'); toggleArm.setAttribute('y2', '250'); }
                 if(toggleArmInner) { toggleArmInner.setAttribute('x2', '290'); toggleArmInner.setAttribute('y2', '250'); }
+                if(schSwitchArm) { schSwitchArm.setAttribute('x2', '82'); schSwitchArm.setAttribute('y2', '180'); }
                 setCircuitState(true);
                 updateStatusPanel("SATURATION (ON)", "มีกระแส Base → Q1 นำกระแส → กระแส IC ไหล → LED ติด", "text-emerald-400", "bg-emerald-950/40", "border-emerald-500/30");
                 closeGraphModal();
@@ -1285,6 +1676,7 @@
             } else if (mode === 'pulse') {
                 if(toggleArm) { toggleArm.setAttribute('x2', '290'); toggleArm.setAttribute('y2', '350'); }
                 if(toggleArmInner) { toggleArmInner.setAttribute('x2', '290'); toggleArmInner.setAttribute('y2', '350'); }
+                if(schSwitchArm) { schSwitchArm.setAttribute('x2', '82'); schSwitchArm.setAttribute('y2', '288'); }
                 if(pulseControls) pulseControls.classList.remove('hidden');
                 
                 pulseState = false;
@@ -1301,21 +1693,36 @@
         function setCircuitState(isOn) {
             const flowGroupOn = document.getElementById('currentFlowGroupOn');
             const flowGroupPulse = document.getElementById('currentFlowGroupPulse');
+            const schFlowGroupOn = document.getElementById('schCurrentFlowGroupOn');
+            const schFlowGroupPulse = document.getElementById('schCurrentFlowGroupPulse');
             const ledDome = document.getElementById('led-dome');
             const ledRays = document.getElementById('led-rays');
+            const schLedBody = document.getElementById('sch-led-body');
+            const schLedRays = document.getElementById('sch-led-rays');
             const q1ActiveBadge = document.getElementById('q1ActiveBadge');
             
             if (isOn) {
                 if (currentMode === 'pulse') {
                     if (flowGroupPulse) flowGroupPulse.classList.remove('hidden');
                     if (flowGroupOn) flowGroupOn.classList.add('hidden');
+                    if (schFlowGroupPulse) schFlowGroupPulse.classList.remove('hidden');
+                    if (schFlowGroupOn) schFlowGroupOn.classList.add('hidden');
                 } else {
                     if (flowGroupOn) flowGroupOn.classList.remove('hidden');
                     if (flowGroupPulse) flowGroupPulse.classList.add('hidden');
+                    if (schFlowGroupOn) schFlowGroupOn.classList.remove('hidden');
+                    if (schFlowGroupPulse) schFlowGroupPulse.classList.add('hidden');
                 }
 
                 if(ledDome) ledDome.classList.replace('led-off', 'led-on');
                 if(ledRays) ledRays.classList.remove('hidden');
+
+                if(schLedBody) {
+                    schLedBody.setAttribute('fill', '#ef4444');
+                    schLedBody.style.filter = 'drop-shadow(0 0 10px #ef4444)';
+                }
+                if(schLedRays) schLedRays.classList.remove('hidden');
+
                 const q1Status = document.getElementById('q1Status');
                 if(q1Status) { q1Status.innerText = "Saturation (Closed)"; q1Status.className = "font-bold font-mono text-emerald-400"; }
                 const ledStatus = document.getElementById('ledStatus');
@@ -1325,9 +1732,18 @@
             } else {
                 if (flowGroupOn) flowGroupOn.classList.add('hidden');
                 if (flowGroupPulse) flowGroupPulse.classList.add('hidden');
+                if (schFlowGroupOn) schFlowGroupOn.classList.add('hidden');
+                if (schFlowGroupPulse) schFlowGroupPulse.classList.add('hidden');
 
                 if(ledDome) ledDome.classList.replace('led-on', 'led-off');
                 if(ledRays) ledRays.classList.add('hidden');
+
+                if(schLedBody) {
+                    schLedBody.setAttribute('fill', '#7f1d1d');
+                    schLedBody.style.filter = 'none';
+                }
+                if(schLedRays) schLedRays.classList.add('hidden');
+
                 const q1Status = document.getElementById('q1Status');
                 if(q1Status) { q1Status.innerText = "Cut-off (Open)"; q1Status.className = "font-bold font-mono text-red-400"; }
                 const ledStatus = document.getElementById('ledStatus');
@@ -1540,9 +1956,50 @@
             const probes = document.getElementById('active-probes');
             const ibJump = document.getElementById('wire-ib-jumper');
             const icJump = document.getElementById('wire-ic-jumper');
+            const schMarker = document.getElementById('sch-measure-marker');
             if(probes) probes.classList.add('hidden');
             if(ibJump) ibJump.style.opacity = '1';
             if(icJump) icJump.style.opacity = '1';
+            if(schMarker) schMarker.classList.add('hidden');
+        }
+
+        const schCoords = {
+            'IB':  { x: 220, y: 235, name: 'IB', unit: 'mA', color: '#06b6d4', glow: 'rgba(6, 182, 212, 0.3)' },
+            'IC':  { x: 434, y: 82,  name: 'IC', unit: 'mA', color: '#ef4444', glow: 'rgba(239, 68, 68, 0.3)' },
+            'VBE': { x: 365, y: 318, name: 'VBE', unit: 'V', color: '#10b981', glow: 'rgba(16, 185, 129, 0.3)' },
+            'VCE': { x: 540, y: 308, name: 'VCE', unit: 'V', color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.3)' }
+        };
+
+        function updateSchematicMarker(target, val) {
+            const marker = document.getElementById('sch-measure-marker');
+            if (!marker) return;
+
+            if (!isProbesConnected || !target || !schCoords[target]) {
+                marker.classList.add('hidden');
+                return;
+            }
+
+            const info = schCoords[target];
+            marker.setAttribute('transform', `translate(${info.x}, ${info.y})`);
+            marker.classList.remove('hidden');
+
+            const ripple1 = document.getElementById('sch-marker-ripple1');
+            const ripple2 = document.getElementById('sch-marker-ripple2');
+            const ring = document.getElementById('sch-marker-ring');
+            const tagBg = document.getElementById('sch-marker-tag-bg');
+            const tagText = document.getElementById('sch-marker-tag-text');
+
+            if (ripple1) ripple1.setAttribute('stroke', info.color);
+            if (ripple2) ripple2.setAttribute('stroke', info.color);
+            if (ring) {
+                ring.setAttribute('stroke', info.color);
+                ring.setAttribute('fill', info.glow);
+            }
+            if (tagBg) tagBg.setAttribute('stroke', info.color);
+            if (tagText) {
+                tagText.setAttribute('fill', info.color);
+                tagText.textContent = `วัด ${info.name}: ${val.toFixed(2)} ${info.unit}`;
+            }
         }
 
         function performMeasurement(isAuto = false) {
@@ -1653,6 +2110,9 @@
             const maxRef = measurementMode === 'voltage' ? 5.0 : 10.0;
             const pct = Math.min(100, Math.max(0, (val / maxRef) * 100));
             if(meterBar) meterBar.style.width = `${pct}%`;
+
+            // อัปเดตวงแหวนแอนิเมชันจุดที่กำลังวัดบนหน้าผังวงจร Schematic
+            updateSchematicMarker(target, val);
             
             if (!isAuto && feedback) {
                 feedback.classList.remove('hidden');
